@@ -33,7 +33,51 @@ static void printStatus(const Player* p) {
     printf("XP: %d\n", p->xp);
 }
 
+static int tryRareEvent(Player* p) {
+    int rare = rand() % 100;
+
+    if (rare >= 5) {
+        return 0; 
+    }
+
+    int type = rand() % 4;
+
+    if (type == 0) {
+        int coins = rand() % 50 + 20;
+        p->coins += coins;
+        printf("Lucky find! +%d coins!\n", coins);
+    }
+    else if (type == 1) {
+        int xp = rand() % 15 + 5;
+        p->xp += xp;
+        printf("Big discovery! +%d XP\n", xp);
+    }
+    else if (type == 2) {
+        int dmg = rand() % 30 + 15;
+        p->hp -= dmg;
+        if (p->hp < 0) p->hp = 0;
+        printf("Ambush! Lost %d HP!\n", dmg);
+    }
+    else {
+        int heal = rand() % 20 + 10;
+        int oldHp = p->hp;
+        p->hp += heal;
+        if (p->hp > MAX_HP) p->hp = MAX_HP;
+        printf("Medical supplies found! HP %d -> %d\n", oldHp, p->hp);
+    }
+
+    return 1;
+}
+
+
 static void doExplore(Player* p) {
+    printf("\nYou explore the area...\n");
+
+    if (tryRareEvent(p)) {
+        p->days += 1;
+        return;
+    }
+
     int r = rand() % 100;
     if (r < 35) {
         int coins = rand() % 10 + 1;
@@ -101,7 +145,7 @@ static int readMenuChoice(void) {
     printf("Choose: ");
 
     if (!fgets(line, sizeof(line), stdin)) {
-        return -1; // Input error
+        return -1; 
     }
 
     int choice = 0;
