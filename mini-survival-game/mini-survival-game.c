@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define SAVE_FILE "save.txt"
 
 #define MAX_HP 100
 #define XP_PER_LEVEL 20
@@ -30,6 +31,78 @@ void initPlayer(Player* p, const char* name) {
 
     strncpy(p->name, name, sizeof(p->name) - 1);
     p->name[sizeof(p->name) - 1] = '\0';
+}
+
+static void saveGame(const Player* p) {
+    FILE* f = fopen(SAVE_FILE, "w");
+
+    if (!f) {
+        printf("Could not open save file for writing.\n");
+        return;
+    }
+
+    fprintf(f, "%s\n", p->name);
+
+    fprintf(f, "%d %d %d %d %d %d\n",
+        p->hp, p->maxHp, p->days, p->coins, p->xp, p->level);
+
+    fclose(f);
+    printf("Game saved!");
+}
+
+static int loadGame(Player* p) {
+    FILE* f = fopen(SAVE_FILE, "r");
+    if (!f) {
+        printf("No save file found.\n");
+        return 0;
+    }
+
+    char line[128];
+
+
+    if (!fgets(line, sizeof(line), f)) {
+        fclose(f);
+        printf("Save file is corrupted (missing name).\n");
+        return 0;
+    }
+    line[strcspn(line, "\n")] = '\0';
+
+    strncpy(p->name, line, sizeof(p->name) - 1);
+    p->name[sizeof(p->name) - 1] = '\0';
+
+
+    if (!fgets(line, sizeof(line), f)) {
+        fclose(f);
+        printf("Save file is corrupted (missing stats).\n");
+        return 0;
+    }
+
+    int hp, maxHp, days, coins, xp, level;
+    if (sscanf(line, "%d %d %d %d %d %d", &hp, &maxHp, &days, &coins, &xp, &level) != 6) {
+        fclose(f);
+        printf("Save file is corrupted (bad stats format).\n");
+        return 0;
+    }
+
+    fclose(f);
+
+    p->hp = hp;
+    p->maxHp = maxHp;
+    p->days = days;
+    p->coins = coins;
+    p->xp = xp;
+    p->level = level;
+
+    if (p->maxHp < 1) p->maxHp = MAX_HP;
+    if (p->hp < 0) p->hp = 0;
+    if (p->hp > p->maxHp) p->hp = p->maxHp;
+    if (p->days < 1) p->days = 1;
+    if (p->coins < 0) p->coins = 0;
+    if (p->xp < 0) p->xp = 0;
+    if (p->level < 1) p->level = 1;
+
+    printf("Game loaded!\n");
+    return 1;
 }
 
 static void checkLevel(Player* p) {
@@ -217,8 +290,9 @@ static int readMenuChoice(void) {
     printf("2) Rest\n");
     printf("3) Market\n");
     printf("4) Status\n");
-    printf("5) Exit\n");
-    printf("Choose: ");
+    printf("5) Save\n");
+    printf("6) Load\n");
+    printf("7) Exit\n");
 
     if (!fgets(line, sizeof(line), stdin)) {
         return -1; 
@@ -276,6 +350,12 @@ int main()
             printStatus(&player);
             break;
         case 5:
+            saveGame(&player);
+            break;
+        case 6:
+            loadGame(&player);
+            break;
+        case 7:
             running = 0;
             break;
         default:
