@@ -5,6 +5,8 @@
 #include <time.h>
 
 
+#define MAX_HP 100
+
 typedef struct {
     int hp;
     char name[32];
@@ -14,7 +16,7 @@ typedef struct {
 } Player;
 
 void initPlayer(Player* p, const char* name) {
-    p->hp = 100;
+    p->hp = MAX_HP;
     p->days = 1;
     strncpy(p->name, name, sizeof(p->name) - 1);
     p->name[sizeof(p->name) - 1] = '\0';
@@ -33,32 +35,59 @@ static void printStatus(const Player* p) {
 
 static void doExplore(Player* p) {
     int r = rand() % 100;
-    if (r < 50) {
+    if (r < 35) {
         int coins = rand() % 10 + 1;
         p->coins += coins;
         printf("You found %d coins\n", coins);
     }
-    else if (r < 70) {
+    else if (r < 50) {
         int xp = rand() % 5 + 1;
         p->xp += xp;
         printf("You gained %d xp\n", xp);
     }
-    else if (r < 90) {
-        int dmg = rand() % 15 + 1;
+    else if (r < 85) {
+        int dmg = (rand() % 10 + 5) + p->days / 5;
+
         p->hp -= dmg;
+        if (p->hp < 0) p->hp = 0;
+
         printf("You were attacked! Lost %d HP!\n", dmg);
     }
     else {
-        printf("Nothing happened");
+        printf("\nNothing happened\n");
     }
-    printf("\nYou rest...\n");
 
     p->days += 1;
 }
 
 static void doRest(Player* p) {
-    printf("\nYou rest...\n");
+    int cost = rand() % 30 + 10;
+    int heal = rand() % 16 + 10;
+    int xp   = rand() % 3 + 1;
+
+
+    if (p->hp >= MAX_HP) {
+        printf("Health is already full. Resting did nothing.\n");
+        return; 
+    }
+
+    if (p->coins < cost) {
+        printf("You don't have enough coins to rest. You need %d coins but only have %d.\n", cost, p->coins);
+        return;
+    }
+
+    p->coins -= cost;
+
+    int oldHp = p->hp;
+    p->hp += heal;
+    if (p->hp > MAX_HP) p->hp = MAX_HP;
+
+    p->xp += xp;
     p->days += 1;
+
+    printf("You rested: HP %d -> %d (+%d), XP +%d, Coins -%d\n",
+        oldHp, p->hp, (p->hp - oldHp), xp, cost);
+
 }
 
 static int readMenuChoice(void) {
@@ -103,9 +132,11 @@ int main()
         switch (choice) {
         case 1:
             doExplore(&player);
+			printStatus(&player);
             break;
         case 2:
             doRest(&player);
+			printStatus(&player);
             break;
         case 3:
             printStatus(&player);

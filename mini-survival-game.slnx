@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="mini-survival-game/mini-survival-game.vcxproj" />
+  <Project Path="mini-survival-game/mini-survival-game.vcxproj" Id="df5075fe-7a3c-4931-933f-898dbc6df93c" />
 </Solution>
