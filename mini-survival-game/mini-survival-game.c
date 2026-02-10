@@ -134,14 +134,63 @@ static void doRest(Player* p) {
 
 }
 
+static void doMarket(Player* p) {
+    int running = 1;
+	char line[64];
+    int choice;
+
+    while (running) {
+        printf("\n=== MARKET ===\n");
+        printf("Coins: %d | HP: %d\n", p->coins, p->hp);
+        printf("1) Buy Health Potion (+25 HP) - Cost: 25 coins\n");
+        printf("2) Exit\n");
+        printf("Choose: ");
+
+        if (!fgets(line, sizeof(line), stdin)) {
+            return;
+        }
+
+        if (sscanf(line, "%d", &choice) != 1) {
+            choice = 0;
+        }
+
+        switch (choice) {
+            case 1:
+                if (p->coins < 25) {
+                    printf("Not enought coins!\n");
+                    break;
+                }
+                if (p->hp >= MAX_HP) {
+                    printf("Health already full. Exiting market\n");
+                    break;
+                }
+                p->coins -= 25;
+
+                int oldHp = p->hp;
+                p->hp += 25;
+                if (p->hp > MAX_HP)
+                    p->hp = MAX_HP;
+
+                printf("Potion used! HP %d -> %d\n", oldHp, p->hp);
+                break;
+            case 2:
+                running = 0;
+                break;
+            default:
+                printf("Invalid choice.\n");
+        }
+    }
+}
+
 static int readMenuChoice(void) {
     char line[64];
 
     printf("\n=== MENU ===\n");
     printf("1) Explore\n");
     printf("2) Rest\n");
-    printf("3) Status\n");
-    printf("4) Exit\n");
+    printf("3) Market\n");
+    printf("4) Status\n");
+    printf("5) Exit\n");
     printf("Choose: ");
 
     if (!fgets(line, sizeof(line), stdin)) {
@@ -163,7 +212,18 @@ int main()
     srand((unsigned)time(NULL));
 
     Player player;
-    initPlayer(&player, "Edwart");
+    char name[32];
+
+    printf("Enter your name: ");
+
+    if (fgets(name, sizeof(name), stdin)) {
+        name[strcspn(name, "\n")] = '\0';
+    }
+    else {
+        strcpy(name, "Player");
+    }
+
+    initPlayer(&player, name);
 
     printf("Welcome to Survival CLI");
     printStatus(&player);
@@ -183,13 +243,12 @@ int main()
 			printStatus(&player);
             break;
         case 3:
-            printStatus(&player);
+            doMarket(&player);
             break;
         case 4:
-            running = 0;
+            printStatus(&player);
             break;
-        case -1:
-            printf("\nInput closed. Exiting...\n");
+        case 5:
             running = 0;
             break;
         default:
