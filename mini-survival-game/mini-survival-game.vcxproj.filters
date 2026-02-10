@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mini-survival-game.cpp">
+    <ClCompile Include="mini-survival-game.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
