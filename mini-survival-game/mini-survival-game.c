@@ -32,7 +32,27 @@ static void printStatus(const Player* p) {
 }
 
 static void doExplore(Player* p) {
-    printf("\nYou explore the area...\n");
+    int r = rand() % 100;
+    if (r < 50) {
+        int coins = rand() % 10 + 1;
+        p->coins += coins;
+        printf("You found %d coins\n", coins);
+    }
+    else if (r < 70) {
+        int xp = rand() % 5 + 1;
+        p->xp += xp;
+        printf("You gained %d xp\n", xp);
+    }
+    else if (r < 90) {
+        int dmg = rand() % 15 + 1;
+        p->hp -= dmg;
+        printf("You were attacked! Lost %d HP!\n", dmg);
+    }
+    else {
+        printf("Nothing happened");
+    }
+    printf("\nYou rest...\n");
+
     p->days += 1;
 }
 
